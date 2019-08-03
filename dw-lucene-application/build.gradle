@@ -1,0 +1,36 @@
+apply from: '../vars.gradle'
+apply from: '../versions.gradle'
+
+repositories {
+  jcenter()
+}
+
+// short class name, not FQCN
+mainClassName = projectLevelVariables.mainClass - ~/^[\w.]*\./
+
+dependencies {
+  compile group: 'io.dropwizard',
+          name: 'dropwizard-hibernate',
+          version: dependencyVersions['io.dropwizard']
+
+  compile project(":${projectLevelVariables.projectName}-api")
+
+  testCompile group: 'junit',
+              name: 'junit',
+              version: dependencyVersions['junit.junit']
+}
+
+jar {
+  archivesBaseName = projectLevelVariables.projectName
+  manifest {
+    attributes 'Main-Class': projectLevelVariables.mainClass
+  }
+}
+
+shadowJar {
+  archiveClassifier.set('sources')
+  from sourceSets.main.allSource
+  manifest {
+    from jar.manifest
+  }
+}

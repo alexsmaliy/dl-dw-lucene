@@ -1,0 +1,28 @@
+plugins {
+  id 'idea'
+  // Gradle plugins DSL demands constant plugin versions. Can't factor these suckers out!
+  id 'com.github.johnrengelman.shadow' version '5.1.0' apply false
+  id 'org.inferred.processors' version '2.2.0' apply false
+}
+
+apply from: 'vars.gradle'
+apply from: 'versions.gradle'
+
+allprojects {
+  repositories {
+    jcenter()
+  }
+}
+
+subprojects.each {
+  it.apply plugin: 'java'
+}
+
+project(":${projectLevelVariables.projectName}-api") {
+  apply plugin: 'org.inferred.processors'
+}
+
+project(":${projectLevelVariables.projectName}-application") {
+  apply plugin: 'application'
+  apply plugin: 'com.github.johnrengelman.shadow'
+}

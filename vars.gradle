@@ -1,0 +1,6 @@
+ext {
+  projectLevelVariables = [
+    mainClass: 'solutions.bloaty.misc.dwlucene.DropwizardLuceneDeepSearchApplication',
+    projectName : 'dw-lucene'
+  ]
+}

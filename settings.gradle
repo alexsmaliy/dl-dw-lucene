@@ -1,0 +1,14 @@
+pluginManagement {
+  repositories {
+    gradlePluginPortal()
+    jcenter()
+  }
+}
+
+apply from: 'vars.gradle'
+
+include "${projectLevelVariables.projectName}-api"
+include "${projectLevelVariables.projectName}-application"
+include "${projectLevelVariables.projectName}-client"
+
+rootProject.name = projectLevelVariables.projectName
