@@ -26,3 +26,39 @@ project(":${projectLevelVariables.projectName}-application") {
   apply plugin: 'application'
   apply plugin: 'com.github.johnrengelman.shadow'
 }
+
+def getNewHeapSizeNode = { ->
+  new Node(null, 'option', [name: 'BUILD_PROCESS_HEAP_SIZE', value: '2048'])
+}
+
+def setHeapSizeConf = { Node compilerConf ->
+  Node heapSizeConf = compilerConf.option.find { it.@name == 'BUILD_PROCESS_HEAP_SIZE' }
+  if (heapSizeConf == null) {
+    compilerConf.append(getNewHeapSizeNode())
+  } else {
+    heapSizeConf.get(0).replaceNode(getNewHeapSizeNode())
+  }
+}
+
+def getNewAnnotationProcessingNode = { ->
+  new Node(null, 'annotationProcessing')
+}
+
+def setAnnotationProcessingConf = { Node compilerConf ->
+  if (!compilerConf.annotationProcessing) {
+    compilerConf.append(getNewAnnotationProcessingNode())
+  }
+  NodeList annotationProcessingNode = compilerConf.annotationProcessing
+  Node newAnnotationProcessingNode = getNewAnnotationProcessingNode()
+  annotationProcessingNode.get(0).replaceNode(newAnnotationProcessingNode)
+  Node newProfileNode = new Node(null, 'profile', [default: 'true', name: 'Default', enabled: 'true'])
+  newAnnotationProcessingNode.append(newProfileNode)
+}
+
+idea.project.ipr {
+  withXml { provider ->
+    Node compilerConf = provider.node.component.find { it.@name == 'CompilerConfiguration' }
+    setHeapSizeConf compilerConf
+    setAnnotationProcessingConf compilerConf
+  }
+}
