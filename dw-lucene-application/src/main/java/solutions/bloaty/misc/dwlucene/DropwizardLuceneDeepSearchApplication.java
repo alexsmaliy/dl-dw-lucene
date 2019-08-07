@@ -5,6 +5,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import solutions.bloaty.misc.dwlucene.healthcheck.DummyHealthcheck;
 import solutions.bloaty.misc.dwlucene.resources.DummyResource;
 import solutions.bloaty.tuts.dw.deepsearch.api.appconfig.DropwizardLuceneDeepSearchConfig;
 
@@ -20,6 +21,7 @@ public class DropwizardLuceneDeepSearchApplication extends Application<Dropwizar
             configuration.template(),
             configuration.defaultName()
         );
+        environment.healthChecks().register("dummy",new DummyHealthcheck("Dummy template: %s"));
         environment.jersey().register(dummyResource);
     }
 
