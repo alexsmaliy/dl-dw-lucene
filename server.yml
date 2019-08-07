@@ -1,0 +1,2 @@
+defaultName: 'Bob'
+template: 'Hello, %s!'
