@@ -8,6 +8,10 @@ repositories {
 mainClassName = projectLevelVariables.mainClass
 
 dependencies {
+  compile group: 'javax.xml.bind',
+          name: 'jaxb-api',
+          version: dependencyVersions['javax.xml.bind']
+
   compile group: 'io.dropwizard',
           name: 'dropwizard-hibernate',
           version: dependencyVersions['io.dropwizard']
