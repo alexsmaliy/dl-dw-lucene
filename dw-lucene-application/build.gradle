@@ -33,4 +33,5 @@ shadowJar {
   manifest {
     from jar.manifest
   }
+  version gitVersion
 }

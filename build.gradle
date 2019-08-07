@@ -1,8 +1,10 @@
 plugins {
   id 'idea'
+  id 'java'
   // Gradle plugins DSL demands constant plugin versions. Can't factor these suckers out!
   id 'com.github.johnrengelman.shadow' version '5.1.0' apply false
   id 'org.inferred.processors' version '2.2.0' apply false
+  id 'com.moonlitdoor.git-version' version '0.1.1' apply false
 }
 
 apply from: 'vars.gradle'
@@ -14,9 +16,14 @@ allprojects {
   }
 }
 
+// PLUGIN SELECTION FOR SUBPROJECTS
+
 subprojects.each {
   it.apply plugin: 'java'
 }
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 project(":${projectLevelVariables.projectName}-api") {
   apply plugin: 'org.inferred.processors'
@@ -25,18 +32,21 @@ project(":${projectLevelVariables.projectName}-api") {
 project(":${projectLevelVariables.projectName}-application") {
   apply plugin: 'application'
   apply plugin: 'com.github.johnrengelman.shadow'
+  apply plugin: 'com.moonlitdoor.git-version'
 }
+
+// XML ADDITIONS FOR TOP-LEVEL IDEA PROJECT .ipr FILE
 
 def getNewHeapSizeNode = { ->
   new Node(null, 'option', [name: 'BUILD_PROCESS_HEAP_SIZE', value: '2048'])
 }
 
 def setHeapSizeConf = { Node compilerConf ->
-  Node heapSizeConf = compilerConf.option.find { it.@name == 'BUILD_PROCESS_HEAP_SIZE' }
+  def heapSizeConf = compilerConf.option.find { it.@name == 'BUILD_PROCESS_HEAP_SIZE' }
   if (heapSizeConf == null) {
     compilerConf.append(getNewHeapSizeNode())
   } else {
-    heapSizeConf.get(0).replaceNode(getNewHeapSizeNode())
+    heapSizeConf[0].replaceNode(getNewHeapSizeNode())
   }
 }
 
@@ -48,16 +58,16 @@ def setAnnotationProcessingConf = { Node compilerConf ->
   if (!compilerConf.annotationProcessing) {
     compilerConf.append(getNewAnnotationProcessingNode())
   }
-  NodeList annotationProcessingNode = compilerConf.annotationProcessing
-  Node newAnnotationProcessingNode = getNewAnnotationProcessingNode()
-  annotationProcessingNode.get(0).replaceNode(newAnnotationProcessingNode)
-  Node newProfileNode = new Node(null, 'profile', [default: 'true', name: 'Default', enabled: 'true'])
+  def annotationProcessingNode = compilerConf.annotationProcessing
+  def newAnnotationProcessingNode = getNewAnnotationProcessingNode()
+  annotationProcessingNode[0].replaceNode(newAnnotationProcessingNode)
+  def newProfileNode = new Node(null, 'profile', [default: 'true', name: 'Default', enabled: 'true'])
   newAnnotationProcessingNode.append(newProfileNode)
 }
 
 idea.project.ipr {
   withXml { provider ->
-    Node compilerConf = provider.node.component.find { it.@name == 'CompilerConfiguration' }
+    def compilerConf = provider.node.component.find { it.@name == 'CompilerConfiguration' }
     setHeapSizeConf compilerConf
     setAnnotationProcessingConf compilerConf
   }
