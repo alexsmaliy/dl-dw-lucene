@@ -5,8 +5,7 @@ repositories {
   jcenter()
 }
 
-// short class name, not FQCN
-mainClassName = projectLevelVariables.mainClass - ~/^[\w.]*\./
+mainClassName = projectLevelVariables.mainClass
 
 dependencies {
   compile group: 'io.dropwizard',
@@ -18,6 +17,10 @@ dependencies {
   testCompile group: 'junit',
               name: 'junit',
               version: dependencyVersions['junit.junit']
+}
+
+run {
+  args = ['server', '../server.yml']
 }
 
 jar {
