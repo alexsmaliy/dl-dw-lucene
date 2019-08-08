@@ -5,11 +5,11 @@ dependencies {
                       name: 'value',
                       version: dependencyVersions['org.immutables.value']
 
-  compile group: 'io.dropwizard',
-          name: 'dropwizard-core',
-          version: dependencyVersions['io.dropwizard']
-
   compileOnly group: 'org.immutables',
               name: 'value',
               version: dependencyVersions['org.immutables.value']
+
+  compile group: 'io.dropwizard',
+          name: 'dropwizard-core',
+          version: dependencyVersions['io.dropwizard']
 }

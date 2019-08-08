@@ -16,14 +16,14 @@ allprojects {
   }
 }
 
+sourceCompatibility = 1.11
+targetCompatibility = 1.11
+
 // PLUGIN SELECTION FOR SUBPROJECTS
 
 subprojects.each {
   it.apply plugin: 'java'
 }
-
-sourceCompatibility = 1.11
-targetCompatibility = 1.11
 
 project(":${projectLevelVariables.projectName}-api") {
   apply plugin: 'org.inferred.processors'
