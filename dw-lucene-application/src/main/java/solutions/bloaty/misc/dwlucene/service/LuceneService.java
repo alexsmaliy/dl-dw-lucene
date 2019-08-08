@@ -6,7 +6,7 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
-import solutions.bloaty.tuts.dw.deepsearch.api.appconfig.LuceneConfig;
+import solutions.bloaty.tuts.dw.deepsearch.api.appconfig.LuceneConfiguration;
 import solutions.bloaty.tuts.dw.deepsearch.api.resource.LuceneResource;
 
 import java.io.IOException;
@@ -14,10 +14,10 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class LuceneService implements LuceneResource {
     private final AtomicReference<IndexWriter> indexWriterAtomicReference;
-    private final LuceneConfig luceneConfig;
+    private final LuceneConfiguration luceneConfig;
     private final Environment environment;
 
-    public LuceneService(LuceneConfig luceneConfig, Environment environment) {
+    public LuceneService(LuceneConfiguration luceneConfig, Environment environment) {
         this.luceneConfig = luceneConfig;
         this.environment = environment;
         Directory indexDir;

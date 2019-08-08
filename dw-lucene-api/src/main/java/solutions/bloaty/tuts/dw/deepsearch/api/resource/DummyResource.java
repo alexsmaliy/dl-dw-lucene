@@ -12,7 +12,7 @@ import javax.ws.rs.core.MediaType;
 
 @Path("/hello-world")
 @Produces(MediaType.APPLICATION_JSON)
-public interface DummyResource {
+public interface DummyResource extends Resource {
 
     @GET
     @Timed

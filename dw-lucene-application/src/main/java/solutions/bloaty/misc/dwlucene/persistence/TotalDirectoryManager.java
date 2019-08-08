@@ -2,7 +2,7 @@ package solutions.bloaty.misc.dwlucene.persistence;
 
 import com.google.common.collect.ImmutableList;
 import io.dropwizard.lifecycle.Managed;
-import solutions.bloaty.tuts.dw.deepsearch.api.appconfig.DropwizardLuceneDeepSearchConfig;
+import solutions.bloaty.tuts.dw.deepsearch.api.appconfig.DeepLearningForSearchConfiguration;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,7 +17,7 @@ import java.util.Set;
 public class TotalDirectoryManager implements Managed {
     private final List<Managed> subjects;
 
-    public TotalDirectoryManager(DropwizardLuceneDeepSearchConfig configuration) {
+    public TotalDirectoryManager(DeepLearningForSearchConfiguration configuration) {
         subjects = ImmutableList.of(
             new Managed() {
                 @Override
@@ -52,7 +52,7 @@ public class TotalDirectoryManager implements Managed {
         });
     }
 
-    private static void makeLuceneIndexDir(DropwizardLuceneDeepSearchConfig configuration) {
+    private static void makeLuceneIndexDir(DeepLearningForSearchConfiguration configuration) {
         Set<PosixFilePermission> perms =
             PosixFilePermissions.fromString("rwxrwxrwx");
         FileAttribute<Set<PosixFilePermission>> fileAttributes =

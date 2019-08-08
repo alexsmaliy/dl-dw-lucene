@@ -6,8 +6,8 @@ import org.immutables.value.Value;
 
 @Value.Immutable
 @Value.Style(builder = "new")
-@JsonDeserialize(builder = ImmutableDropwizardLuceneDeepSearchConfig.Builder.class)
-public abstract class DropwizardLuceneDeepSearchConfig extends Configuration {
+@JsonDeserialize(builder = ImmutableDeepLearningForSearchConfiguration.Builder.class)
+public abstract class DeepLearningForSearchConfiguration extends Configuration {
     public abstract String template();
 
     @Value.Default
@@ -16,8 +16,8 @@ public abstract class DropwizardLuceneDeepSearchConfig extends Configuration {
     }
 
     @Value.Default
-    public LuceneConfig lucene() {
-        return new ImmutableLuceneConfig.Builder().build();
+    public LuceneConfiguration lucene() {
+        return new ImmutableLuceneConfiguration.Builder().build();
     }
 
     @Override

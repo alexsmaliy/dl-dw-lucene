@@ -5,7 +5,6 @@ import solutions.bloaty.tuts.dw.deepsearch.api.messages.ImmutableSaying;
 import solutions.bloaty.tuts.dw.deepsearch.api.messages.Saying;
 import solutions.bloaty.tuts.dw.deepsearch.api.resource.DummyResource;
 
-import javax.ws.rs.QueryParam;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class DummyService implements DummyResource {
@@ -21,7 +20,7 @@ public class DummyService implements DummyResource {
     }
 
     @Override
-    public Saying sayHello(@QueryParam("name") NonEmptyStringParam maybeName) {
+    public Saying sayHello(NonEmptyStringParam maybeName) {
         String content = String.format(template, maybeName.get().orElse(defaultName));
         return ImmutableSaying.builder()
             .id(idCounter.incrementAndGet())
