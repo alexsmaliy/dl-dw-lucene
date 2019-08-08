@@ -16,6 +16,10 @@ dependencies {
           name: 'dropwizard-hibernate',
           version: dependencyVersions['io.dropwizard']
 
+  compile group: 'org.apache.lucene',
+          name: 'lucene-core',
+          version: dependencyVersions['org.apache.lucene']
+
   compile project(":${projectLevelVariables.projectName}-api")
 
   testCompile group: 'junit',

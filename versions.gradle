@@ -3,6 +3,7 @@ ext {
     'io.dropwizard' : '1.3.13',
     'javax.xml.bind': '2.3.1',
     'junit.junit' : '4.12',
+    'org.apache.lucene': '8.2.0',
     'org.immutables.value' : '2.7.4',
   ]
 }
