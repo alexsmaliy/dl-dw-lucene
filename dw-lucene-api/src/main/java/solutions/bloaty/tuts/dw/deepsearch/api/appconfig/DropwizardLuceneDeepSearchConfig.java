@@ -14,4 +14,15 @@ public abstract class DropwizardLuceneDeepSearchConfig extends Configuration {
     public String defaultName() {
         return "Stranger";
     }
+
+    @Value.Default
+    public LuceneConfig lucene() {
+        return new ImmutableLuceneConfig.Builder().build();
+    }
+
+    @Override
+    @Value.Default
+    public String toString() {
+        return super.toString();
+    }
 }

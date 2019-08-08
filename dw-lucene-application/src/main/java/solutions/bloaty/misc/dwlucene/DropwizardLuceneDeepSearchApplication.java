@@ -1,13 +1,15 @@
 package solutions.bloaty.misc.dwlucene;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import solutions.bloaty.misc.dwlucene.healthcheck.DummyHealthcheck;
-import solutions.bloaty.misc.dwlucene.resources.DummyResource;
+import solutions.bloaty.misc.dwlucene.persistence.TotalDirectoryManager;
+import solutions.bloaty.misc.dwlucene.service.DummyService;
+import solutions.bloaty.misc.dwlucene.service.LuceneService;
 import solutions.bloaty.tuts.dw.deepsearch.api.appconfig.DropwizardLuceneDeepSearchConfig;
+import solutions.bloaty.tuts.dw.deepsearch.api.resource.DummyResource;
+import solutions.bloaty.tuts.dw.deepsearch.api.resource.LuceneResource;
 
 public class DropwizardLuceneDeepSearchApplication extends Application<DropwizardLuceneDeepSearchConfig> {
     public static void main(String[] args) throws Exception {
@@ -17,12 +19,41 @@ public class DropwizardLuceneDeepSearchApplication extends Application<Dropwizar
     @Override
     public void run(DropwizardLuceneDeepSearchConfig configuration,
                     Environment environment) throws Exception {
-        DummyResource dummyResource = new DummyResource(
-            configuration.template(),
-            configuration.defaultName()
-        );
-        environment.healthChecks().register("dummy",new DummyHealthcheck("Dummy template: %s"));
+        manageManagedObjects(configuration, environment);
+        registerResources(configuration, environment);
+        registerHealthchecks(configuration, environment);
+    }
+
+    private static void manageManagedObjects(DropwizardLuceneDeepSearchConfig configuration,
+                                             Environment environment) {
+        TotalDirectoryManager totalDirectoryManager = new TotalDirectoryManager(configuration);
+        environment.lifecycle().manage(totalDirectoryManager);
+    }
+
+    private static void registerResources(DropwizardLuceneDeepSearchConfig configuration,
+                                          Environment environment) {
+        registerDummyResource(configuration, environment);
+        registerLuceneResource(configuration, environment);
+    }
+
+    private static void registerDummyResource(DropwizardLuceneDeepSearchConfig configuration,
+                                              Environment environment) {
+        String template = configuration.template();
+        String defaultName = configuration.defaultName();
+        DummyResource dummyResource = new DummyService(template, defaultName);
         environment.jersey().register(dummyResource);
+    }
+
+    private static void registerLuceneResource(DropwizardLuceneDeepSearchConfig configuration,
+                                               Environment environment) {
+        LuceneResource luceneResource = new LuceneService(configuration.lucene(), environment);
+        environment.jersey().register(luceneResource);
+    }
+
+    private static void registerHealthchecks(DropwizardLuceneDeepSearchConfig configuration,
+                                             Environment environment) {
+        DummyHealthcheck dummy = new DummyHealthcheck("Dummy template: %s");
+        environment.healthChecks().register("dummy", dummy);
     }
 
     @Override
