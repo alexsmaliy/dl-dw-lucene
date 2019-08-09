@@ -33,14 +33,14 @@ public final class ServiceFactory implements ResourceFactory {
 
     private static DummyResource createDummyResource(DeepLearningForSearchConfiguration configuration,
                                                      Environment environment) {
-        String template = configuration.template();
-        String defaultName = configuration.defaultName();
+        String template = configuration.getApplicationConfiguration().template();
+        String defaultName = configuration.getApplicationConfiguration().defaultName();
         return new DummyService(template, defaultName);
     }
 
     private static LuceneResource createLuceneResource(DeepLearningForSearchConfiguration configuration,
                                                        Environment environment) {
-        LuceneConfiguration luceneConfig = configuration.lucene();
+        LuceneConfiguration luceneConfig = configuration.getApplicationConfiguration().lucene();
         return new LuceneService(luceneConfig, environment);
     }
 }

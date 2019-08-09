@@ -1,28 +1,21 @@
 package solutions.bloaty.tuts.dw.deepsearch.api.appconfig;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.dropwizard.Configuration;
-import org.immutables.value.Value;
 
-@Value.Immutable
-@Value.Style(builder = "new")
-@JsonDeserialize(builder = ImmutableDeepLearningForSearchConfiguration.Builder.class)
-public abstract class DeepLearningForSearchConfiguration extends Configuration {
-    public abstract String template();
+import javax.validation.constraints.NotNull;
 
-    @Value.Default
-    public String defaultName() {
-        return "Stranger";
+public class DeepLearningForSearchConfiguration extends Configuration {
+    @NotNull
+    private ApplicationConfiguration applicationConfiguration;
+
+    @JsonProperty("application")
+    public ApplicationConfiguration getApplicationConfiguration() {
+        return applicationConfiguration;
     }
 
-    @Value.Default
-    public LuceneConfiguration lucene() {
-        return new ImmutableLuceneConfiguration.Builder().build();
-    }
-
-    @Override
-    @Value.Default
-    public String toString() {
-        return super.toString();
+    @JsonProperty("application")
+    public void setApplicationConfiguration(ApplicationConfiguration applicationConfiguration) {
+        this.applicationConfiguration = applicationConfiguration;
     }
 }

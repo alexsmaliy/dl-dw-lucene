@@ -20,6 +20,14 @@ dependencies {
           name: 'lucene-core',
           version: dependencyVersions['org.apache.lucene']
 
+  compile group: 'org.apache.lucene',
+          name: 'lucene-queryparser',
+          version: dependencyVersions['org.apache.lucene']
+
+  compile group: 'org.apache.lucene',
+          name: 'lucene-analyzers-common',
+          version: dependencyVersions['org.apache.lucene']
+
   compile project(":${projectLevelVariables.projectName}-api")
 
   testCompile group: 'junit',

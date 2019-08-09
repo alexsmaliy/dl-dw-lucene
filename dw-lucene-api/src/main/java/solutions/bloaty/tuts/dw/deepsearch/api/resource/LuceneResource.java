@@ -1,8 +1,10 @@
 package solutions.bloaty.tuts.dw.deepsearch.api.resource;
 
 import com.codahale.metrics.annotation.Timed;
+import solutions.bloaty.tuts.dw.deepsearch.api.query.StringQuery;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
@@ -15,5 +17,10 @@ public interface LuceneResource extends Resource {
     @Path("ping")
     @Timed
     boolean ping();
+
+    @POST
+    @Path("query")
+    @Timed
+    String query(StringQuery stringQuery);
 
 }

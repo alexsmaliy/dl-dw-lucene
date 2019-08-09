@@ -1,2 +1,15 @@
-defaultName: 'Bob'
-template: 'Hello, %s!'
+application:
+  defaultName: 'Bob'
+  template: 'Hello, %s!'
+logging:
+  level: INFO
+  loggers:
+    "solutions.bloaty.misc.dwlucene.service.LuceneService":
+      level: DEBUG
+      additive: false
+      appenders:
+        -
+          type: file
+          currentLogFilename: ./log/lucene-service.log
+          archivedLogFilenamePattern: ./log/lucene-service-%d.log.gz
+          archivedFileCount: 5

@@ -57,7 +57,7 @@ public class TotalDirectoryManager implements Managed {
             PosixFilePermissions.fromString("rwxrwxrwx");
         FileAttribute<Set<PosixFilePermission>> fileAttributes =
             PosixFilePermissions.asFileAttribute(perms);
-        Path indexDir = configuration.lucene().indexDir();
+        Path indexDir = configuration.getApplicationConfiguration().lucene().indexDir();
         if (!Files.exists(indexDir, LinkOption.NOFOLLOW_LINKS)) {
             try {
                 Files.createDirectories(indexDir, fileAttributes);

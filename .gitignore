@@ -10,6 +10,8 @@ out/
 
 # Ignore (default) app data directory
 indexes/
+# Ignore (default) app logging directory
+log/
 
 *.iml
 *.ipr
