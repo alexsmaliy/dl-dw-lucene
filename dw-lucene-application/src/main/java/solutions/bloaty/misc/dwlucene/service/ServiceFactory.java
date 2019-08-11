@@ -4,9 +4,9 @@ import com.google.common.collect.ImmutableSet;
 import io.dropwizard.setup.Environment;
 import solutions.bloaty.tuts.dw.deepsearch.api.appconfig.DeepLearningForSearchConfiguration;
 import solutions.bloaty.tuts.dw.deepsearch.api.appconfig.LuceneConfiguration;
-import solutions.bloaty.tuts.dw.deepsearch.api.resource.Resource;
 import solutions.bloaty.tuts.dw.deepsearch.api.resource.DummyResource;
 import solutions.bloaty.tuts.dw.deepsearch.api.resource.LuceneResource;
+import solutions.bloaty.tuts.dw.deepsearch.api.resource.Resource;
 import solutions.bloaty.tuts.dw.deepsearch.api.resource.ResourceFactory;
 
 import java.util.Collection;
@@ -41,6 +41,6 @@ public final class ServiceFactory implements ResourceFactory {
     private static LuceneResource createLuceneResource(DeepLearningForSearchConfiguration configuration,
                                                        Environment environment) {
         LuceneConfiguration luceneConfig = configuration.getApplicationConfiguration().lucene();
-        return new LuceneService(luceneConfig, environment);
+        return new LuceneService(luceneConfig);
     }
 }

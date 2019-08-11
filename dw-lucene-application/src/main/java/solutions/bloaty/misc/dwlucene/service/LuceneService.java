@@ -1,13 +1,15 @@
 package solutions.bloaty.misc.dwlucene.service;
 
-import io.dropwizard.setup.Environment;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.SearcherManager;
+import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.slf4j.Logger;
@@ -17,6 +19,8 @@ import solutions.bloaty.tuts.dw.deepsearch.api.query.StringQuery;
 import solutions.bloaty.tuts.dw.deepsearch.api.resource.LuceneResource;
 
 import javax.ws.rs.BadRequestException;
+import javax.ws.rs.ServerErrorException;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -24,19 +28,16 @@ public class LuceneService implements LuceneResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(LuceneService.class);
 
     private static final String DEFAULT_SEARCHED_FIELD = "title";
-    private static final QueryParser DEFAULT_QUERY_PARSER = getDefaultQueryParser();
+    private static final QueryParser DEFAULT_QUERY_PARSER = getDefaultQueryParser(DEFAULT_SEARCHED_FIELD);
 
     private final AtomicReference<IndexWriter> indexWriterAtomicReference;
-    private final LuceneConfiguration luceneConfig;
-    private final Environment environment;
+    private final SearcherManager searcherManager;
 
-    private static QueryParser getDefaultQueryParser() {
-        return new QueryParser(DEFAULT_SEARCHED_FIELD, new WhitespaceAnalyzer());
+    private static QueryParser getDefaultQueryParser(String fieldName) {
+        return new QueryParser(fieldName, new WhitespaceAnalyzer());
     }
 
-    public LuceneService(LuceneConfiguration luceneConfig, Environment environment) {
-        this.luceneConfig = luceneConfig;
-        this.environment = environment;
+    LuceneService(LuceneConfiguration luceneConfig) {
         Directory indexDir;
         try {
             indexDir = FSDirectory.open(luceneConfig.indexDir());
@@ -54,6 +55,11 @@ public class LuceneService implements LuceneResource {
             throw new RuntimeException("Unable to initialize index writer!", e);
         }
         this.indexWriterAtomicReference = new AtomicReference<>(writer);
+        try {
+            this.searcherManager = new SearcherManager(writer, null);
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to initialize index searcher!", e);
+        }
     }
 
     @Override
@@ -63,12 +69,58 @@ public class LuceneService implements LuceneResource {
 
     @Override
     public String query(StringQuery stringQuery) {
+        IndexSearcher tempSearcher = null;
+        TopDocs topDocs = null;
         try {
-            Query query = DEFAULT_QUERY_PARSER.parse(stringQuery.query());
+            Query parsedQuery = tryParseQuery(stringQuery);
+            tempSearcher = tryAcquireSearcher();
+            topDocs = trySearch(tempSearcher, parsedQuery);
+        } finally {
+            tryReleaseSearcher(tempSearcher);
+            tempSearcher = null;
+        }
+        return "Number of hits: " + topDocs.totalHits.value;
+    }
+
+    private Query tryParseQuery(StringQuery stringQuery) {
+        try {
+            return DEFAULT_QUERY_PARSER.parse(stringQuery.query());
         } catch (ParseException e) {
             LOGGER.error("Unable to parse query!", e);
-            throw new BadRequestException("Unable to parse query! " + e.getMessage());
+            throw new BadRequestException("Unable to parse query!");
         }
-        return stringQuery.query();
+    }
+
+    private IndexSearcher tryAcquireSearcher() {
+        try {
+            return searcherManager.acquire();
+        } catch (IOException e) {
+            LOGGER.error("Failed to acquire index searcher!", e);
+            throw new ServerErrorException(
+                "Server error while searching!",
+                Response.Status.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private TopDocs trySearch(IndexSearcher indexSearcher, Query query) {
+        try {
+            return indexSearcher.search(query, 5);
+        } catch (IOException e) {
+            LOGGER.error("Failed to search!", e);
+            throw new ServerErrorException(
+                "Server error while searching!",
+                Response.Status.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private void tryReleaseSearcher(IndexSearcher indexSearcher) {
+        try {
+            searcherManager.release(indexSearcher);
+        } catch (IOException e) {
+            LOGGER.error("Failed to release index searcher after use!", e);
+            throw new ServerErrorException(
+                "Server error while searching!",
+                Response.Status.INTERNAL_SERVER_ERROR);
+        }
     }
 }
