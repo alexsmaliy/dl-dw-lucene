@@ -1,6 +1,13 @@
 package solutions.bloaty.misc.dwlucene.index;
 
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.CharArraySet;
+import org.apache.lucene.analysis.core.StopAnalyzer;
+import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
+import org.apache.lucene.analysis.en.EnglishAnalyzer;
+import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.search.SearcherFactory;
@@ -9,15 +16,22 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import solutions.bloaty.misc.dwlucene.Constants;
+import solutions.bloaty.tuts.dw.deepsearch.api.document.ImmutableField;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Map;
 
-public class IndexUtils {
-    private static final Logger LOGGER = LoggerFactory.getLogger(IndexUtils.class);
+import static solutions.bloaty.misc.dwlucene.Constants.DEFAULT_SEARCHED_FIELD;
 
-    private IndexUtils() { /* utility class */ }
+public class IndexInitializer {
+    private static final Logger LOGGER = LoggerFactory.getLogger(IndexInitializer.class);
+
+
+
+    private IndexInitializer() { /* utility class */ }
 
     public static IndexWriter getIndexWriter(Path indexDir) {
         IndexWriterConfig indexWriterConfig = getIndexWriterConfig();
@@ -41,7 +55,15 @@ public class IndexUtils {
     }
 
     private static IndexWriterConfig getIndexWriterConfig() {
-        StandardAnalyzer analyzer = new StandardAnalyzer();
+        CharArraySet stopwords = new CharArraySet(
+            ImmutableSet.of("a", "an", "the"),
+            Constants.DEFAULT_IGNORE_CASE);
+        Map<String, Analyzer> fieldToAnalyzerMap = ImmutableMap.of(
+            ImmutableField.of("pages").name(),
+            new StopAnalyzer(stopwords),
+            DEFAULT_SEARCHED_FIELD.name(),
+            new WhitespaceAnalyzer());
+        Analyzer analyzer = new PerFieldAnalyzerWrapper(new EnglishAnalyzer(), fieldToAnalyzerMap);
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
         config.setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
         config.setCommitOnClose(true);

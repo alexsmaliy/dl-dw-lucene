@@ -13,8 +13,8 @@ public class ManagedIndex implements Managed {
     private final SearcherManager searcherManager;
 
     public ManagedIndex(Path indexDirPath) {
-        indexWriter = IndexUtils.getIndexWriter(indexDirPath);
-        searcherManager = IndexUtils.getSearcherManager(indexWriter, null);
+        indexWriter = IndexInitializer.getIndexWriter(indexDirPath);
+        searcherManager = IndexInitializer.getSearcherManager(indexWriter, null);
     }
 
     @Override
