@@ -2,6 +2,7 @@ package solutions.bloaty.tuts.dw.deepsearch.api.resource;
 
 import com.codahale.metrics.annotation.Timed;
 import solutions.bloaty.tuts.dw.deepsearch.api.query.StringQuery;
+import solutions.bloaty.tuts.dw.deepsearch.api.response.HitCollection;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -21,6 +22,6 @@ public interface LuceneResource extends Resource {
     @POST
     @Path("query")
     @Timed
-    String query(StringQuery stringQuery);
+    HitCollection query(StringQuery stringQuery);
 
 }

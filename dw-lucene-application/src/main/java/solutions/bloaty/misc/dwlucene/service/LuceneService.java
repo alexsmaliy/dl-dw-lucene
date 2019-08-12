@@ -1,29 +1,45 @@
 package solutions.bloaty.misc.dwlucene.service;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.CharArraySet;
+import org.apache.lucene.analysis.core.StopAnalyzer;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
+import org.apache.lucene.analysis.en.EnglishAnalyzer;
+import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.SearcherManager;
-import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import solutions.bloaty.misc.dwlucene.index.ManagedIndex;
+import solutions.bloaty.tuts.dw.deepsearch.api.document.Field;
+import solutions.bloaty.tuts.dw.deepsearch.api.document.ImmutableField;
 import solutions.bloaty.tuts.dw.deepsearch.api.query.StringQuery;
 import solutions.bloaty.tuts.dw.deepsearch.api.resource.LuceneResource;
+import solutions.bloaty.tuts.dw.deepsearch.api.response.HitCollection;
+import solutions.bloaty.tuts.dw.deepsearch.api.response.ImmutableHitCollection;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public class LuceneService implements LuceneResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(LuceneService.class);
 
-    private static final String DEFAULT_SEARCHED_FIELD = "title";
-    private static final QueryParser DEFAULT_QUERY_PARSER = getDefaultQueryParser(DEFAULT_SEARCHED_FIELD);
+    private static final boolean DEFAULT_IGNORE_CASE = true;
+    private static final Field DEFAULT_SEARCHED_FIELD = ImmutableField.of("title");
+    private static final QueryParser DEFAULT_QUERY_PARSER =
+        getDefaultQueryParser(DEFAULT_SEARCHED_FIELD.name());
 
     private final IndexWriter indexWriter;
     private final SearcherManager searcherManager;
@@ -42,19 +58,46 @@ public class LuceneService implements LuceneResource {
         return true;
     }
 
+    public void index(String toIndex) {
+        CharArraySet stopwords = new CharArraySet(
+            ImmutableSet.of("a", "an", "the"),
+            DEFAULT_IGNORE_CASE);
+        Map<String, Analyzer> fieldToAnalyzerMap = ImmutableMap.of(
+            ImmutableField.of("pages").name(),
+            new StopAnalyzer(stopwords),
+            DEFAULT_SEARCHED_FIELD.name(),
+            new WhitespaceAnalyzer());
+        Analyzer analyzer = new PerFieldAnalyzerWrapper(new EnglishAnalyzer(), fieldToAnalyzerMap);
+    }
+
     @Override
-    public String query(StringQuery stringQuery) {
+    public HitCollection query(StringQuery stringQuery) {
         IndexSearcher tempSearcher = null;
-        TopDocs topDocs = null;
         try {
             Query parsedQuery = tryParseQuery(stringQuery);
             tempSearcher = tryAcquireSearcher();
-            topDocs = trySearch(tempSearcher, parsedQuery);
+            TopDocs topDocs = trySearch(tempSearcher, parsedQuery);
+            IndexReader indexReader = tempSearcher.getIndexReader();
+            List<String> hits = Arrays.stream(topDocs.scoreDocs)
+                  .flatMap(result -> getField(result, indexReader, DEFAULT_SEARCHED_FIELD).stream())
+                  .collect(ImmutableList.toImmutableList());
+            return ImmutableHitCollection.of(hits);
         } finally {
-            tryReleaseSearcher(tempSearcher);
-            tempSearcher = null;
+            if (tempSearcher != null) {
+                tryReleaseSearcher(tempSearcher);
+            }
         }
-        return "Number of hits: " + topDocs.totalHits.value;
+    }
+
+    private static Optional<String> getField(ScoreDoc result,
+                                             IndexReader indexReader,
+                                             Field field) {
+        try {
+            return Optional.of(indexReader.document(result.doc).get(field.name()));
+        } catch (IOException e) {
+            LOGGER.error("Failed to retrieve a field from a query result. Results are incomplete!", e);
+            return Optional.empty();
+        }
     }
 
     private Query tryParseQuery(StringQuery stringQuery) {
