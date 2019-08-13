@@ -24,24 +24,25 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Map;
 
-import static solutions.bloaty.misc.dwlucene.Constants.DEFAULT_SEARCHED_FIELD;
-
 public class IndexInitializer {
     private static final Logger LOGGER = LoggerFactory.getLogger(IndexInitializer.class);
 
-
-
     private IndexInitializer() { /* utility class */ }
 
-    public static IndexWriter getIndexWriter(Path indexDir) {
+    public static IndexWriter getIndexWriter(Path rootIndexDir, String indexName) {
         IndexWriterConfig indexWriterConfig = getIndexWriterConfig();
         try {
+            Path indexDir = getCanonicalIndexPath(rootIndexDir, indexName);
             Directory indexDirectory = FSDirectory.open(indexDir);
             return new IndexWriter(indexDirectory, indexWriterConfig);
         } catch (IOException e) {
             LOGGER.error("Unable to initialize index writer!", e);
             throw new RuntimeException("Unable to initialize index writer!", e);
         }
+    }
+
+    private static Path getCanonicalIndexPath(Path root, String indexName) {
+        return root.resolve(IndexUtils.encodeIndexName(indexName));
     }
 
     public static SearcherManager getSearcherManager(IndexWriter indexWriter,
@@ -57,11 +58,11 @@ public class IndexInitializer {
     private static IndexWriterConfig getIndexWriterConfig() {
         CharArraySet stopwords = new CharArraySet(
             ImmutableSet.of("a", "an", "the"),
-            Constants.DEFAULT_IGNORE_CASE);
+            Constants.Defaults.IGNORE_CASE);
         Map<String, Analyzer> fieldToAnalyzerMap = ImmutableMap.of(
             ImmutableField.of("pages").name(),
             new StopAnalyzer(stopwords),
-            DEFAULT_SEARCHED_FIELD.name(),
+            Constants.Defaults.SEARCHED_FIELD.name(),
             new WhitespaceAnalyzer());
         Analyzer analyzer = new PerFieldAnalyzerWrapper(new EnglishAnalyzer(), fieldToAnalyzerMap);
         IndexWriterConfig config = new IndexWriterConfig(analyzer);

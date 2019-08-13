@@ -1,5 +1,6 @@
 package solutions.bloaty.misc.dwlucene;
 
+import com.google.common.collect.ImmutableSet;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
@@ -11,6 +12,7 @@ import solutions.bloaty.tuts.dw.deepsearch.api.appconfig.DeepLearningForSearchCo
 import solutions.bloaty.tuts.dw.deepsearch.api.resource.ResourceFactory;
 
 import java.nio.file.Path;
+import java.util.Set;
 
 public class DeepLearningForSearch extends Application<DeepLearningForSearchConfiguration> {
     public static void main(String[] args) throws Exception {
@@ -24,10 +26,11 @@ public class DeepLearningForSearch extends Application<DeepLearningForSearchConf
         environment.lifecycle().manage(totalDirectoryManager);
 
         Path indexDirPath = configuration.getApplicationConfiguration().lucene().indexDir();
-        ManagedIndex managedIndex = new ManagedIndex(indexDirPath);
+        ManagedIndex managedIndex = new ManagedIndex(indexDirPath, "books");
         environment.lifecycle().manage(managedIndex);
 
-        ResourceFactory resourceFactory = ServiceFactory.create(configuration, managedIndex);
+        Set<ManagedIndex> managedIndexes = ImmutableSet.of(managedIndex);
+        ResourceFactory resourceFactory = ServiceFactory.create(configuration, managedIndexes);
         resourceFactory.resources().forEach(resource -> environment.jersey().register(resource));
 
         DummyHealthcheck dummy = new DummyHealthcheck("Dummy template: %s");

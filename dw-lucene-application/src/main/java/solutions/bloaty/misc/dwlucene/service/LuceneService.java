@@ -1,12 +1,15 @@
 package solutions.bloaty.misc.dwlucene.service;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.*;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TopDocs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import solutions.bloaty.misc.dwlucene.Constants;
@@ -21,31 +24,32 @@ import javax.ws.rs.BadRequestException;
 import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class LuceneService implements LuceneResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(LuceneService.class);
 
     private static final QueryParser DEFAULT_QUERY_PARSER =
-        getDefaultQueryParser(Constants.DEFAULT_SEARCHED_FIELD.name());
+        getDefaultQueryParser(Constants.Defaults.SEARCHED_FIELD.name());
 
-    private final IndexWriter indexWriter;
-    private final SearcherManager searcherManager;
+    private final Map<String, ManagedIndex> managedIndexes;
 
     private static QueryParser getDefaultQueryParser(String fieldName) {
         return new QueryParser(fieldName, new WhitespaceAnalyzer());
     }
 
-    LuceneService(ManagedIndex managedIndex) {
-        this.indexWriter = managedIndex.getIndexWriter();
-        this.searcherManager = managedIndex.getSearcherManager();
+    LuceneService(Set<ManagedIndex> managedIndexes) {
+        this.managedIndexes = Maps.uniqueIndex(managedIndexes, ManagedIndex::getIndexName);
     }
 
     @Override
     public boolean ping() {
         return true;
+    }
+
+    @Override
+    public Set<String> listIndexes() {
+        return managedIndexes.keySet();
     }
 
     public void index(String toIndex) {
@@ -57,16 +61,17 @@ public class LuceneService implements LuceneResource {
         IndexSearcher tempSearcher = null;
         try {
             Query parsedQuery = tryParseQuery(stringQuery);
-            tempSearcher = tryAcquireSearcher();
+            tempSearcher = tryAcquireSearcher(stringQuery.indexName());
             TopDocs topDocs = trySearch(tempSearcher, parsedQuery);
             IndexReader indexReader = tempSearcher.getIndexReader();
             List<String> hits = Arrays.stream(topDocs.scoreDocs)
-                  .flatMap(result -> getField(result, indexReader, Constants.DEFAULT_SEARCHED_FIELD).stream())
+                  .flatMap(result ->
+                      getField(result, indexReader, Constants.Defaults.SEARCHED_FIELD).stream())
                   .collect(ImmutableList.toImmutableList());
             return ImmutableHitCollection.of(hits);
         } finally {
             if (tempSearcher != null) {
-                tryReleaseSearcher(tempSearcher);
+                tryReleaseSearcher(stringQuery.indexName(), tempSearcher);
             }
         }
     }
@@ -91,9 +96,14 @@ public class LuceneService implements LuceneResource {
         }
     }
 
-    private IndexSearcher tryAcquireSearcher() {
+    private IndexSearcher tryAcquireSearcher(String indexName) {
         try {
-            return searcherManager.acquire();
+            ManagedIndex index = managedIndexes.get(indexName);
+            if (index == null) {
+                LOGGER.error("Client attempted to query non-existent index {}", indexName);
+                throw new BadRequestException("Tried to search a non-existent index: " + indexName);
+            }
+            return index.getSearcherManager().acquire();
         } catch (IOException e) {
             LOGGER.error("Failed to acquire index searcher!", e);
             throw new ServerErrorException(
@@ -104,7 +114,7 @@ public class LuceneService implements LuceneResource {
 
     private TopDocs trySearch(IndexSearcher indexSearcher, Query query) {
         try {
-            return indexSearcher.search(query, 5);
+            return indexSearcher.search(query, Constants.Defaults.MAX_RESULTS_TO_RETURN);
         } catch (IOException e) {
             LOGGER.error("Failed to search!", e);
             throw new ServerErrorException(
@@ -113,11 +123,19 @@ public class LuceneService implements LuceneResource {
         }
     }
 
-    private void tryReleaseSearcher(IndexSearcher indexSearcher) {
+    private void tryReleaseSearcher(String indexName, IndexSearcher indexSearcher) {
         try {
-            searcherManager.release(indexSearcher);
+            ManagedIndex index = managedIndexes.get(indexName);
+            if (index == null) {
+                LOGGER.error("Obtained a searcher for index {}, "
+                    + "but now unable to find the index again to release the searcher!", indexName);
+                throw new ServerErrorException(
+                    "Server error while searching!",
+                    Response.Status.INTERNAL_SERVER_ERROR);
+            }
+            index.getSearcherManager().release(indexSearcher);
         } catch (IOException e) {
-            LOGGER.error("Failed to release index searcher after use!", e);
+            LOGGER.error("Failed to release index searcher for index {} after use!", indexName, e);
             throw new ServerErrorException(
                 "Server error while searching!",
                 Response.Status.INTERNAL_SERVER_ERROR);

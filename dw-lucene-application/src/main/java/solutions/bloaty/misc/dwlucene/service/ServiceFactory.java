@@ -9,20 +9,21 @@ import solutions.bloaty.tuts.dw.deepsearch.api.resource.Resource;
 import solutions.bloaty.tuts.dw.deepsearch.api.resource.ResourceFactory;
 
 import java.util.Collection;
+import java.util.Set;
 
 public final class ServiceFactory implements ResourceFactory {
     private final DummyResource dummyResource;
     private final LuceneResource luceneResource;
 
     private ServiceFactory(DeepLearningForSearchConfiguration configuration,
-                           ManagedIndex managedIndex) {
+                           Set<ManagedIndex> managedIndexes) {
         this.dummyResource = createDummyResource(configuration);
-        this.luceneResource = createLuceneResource(managedIndex);
+        this.luceneResource = createLuceneResource(managedIndexes);
     }
 
     public static ServiceFactory create(DeepLearningForSearchConfiguration configuration,
-                                        ManagedIndex managedIndex) {
-        return new ServiceFactory(configuration, managedIndex);
+                                        Set<ManagedIndex> managedIndexes) {
+        return new ServiceFactory(configuration, managedIndexes);
     }
 
     @Override
@@ -36,7 +37,7 @@ public final class ServiceFactory implements ResourceFactory {
         return new DummyService(template, defaultName);
     }
 
-    private static LuceneResource createLuceneResource(ManagedIndex managedIndex) {
-        return new LuceneService(managedIndex);
+    private static LuceneResource createLuceneResource(Set<ManagedIndex> managedIndexes) {
+        return new LuceneService(managedIndexes);
     }
 }
