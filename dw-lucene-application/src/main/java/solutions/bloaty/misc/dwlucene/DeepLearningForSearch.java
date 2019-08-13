@@ -8,6 +8,7 @@ import solutions.bloaty.misc.dwlucene.healthcheck.DummyHealthcheck;
 import solutions.bloaty.misc.dwlucene.index.ManagedIndex;
 import solutions.bloaty.misc.dwlucene.persistence.TotalDirectoryManager;
 import solutions.bloaty.misc.dwlucene.service.ServiceFactory;
+import solutions.bloaty.misc.dwlucene.error.InvalidDefinitionExceptionMapper;
 import solutions.bloaty.tuts.dw.deepsearch.api.appconfig.DeepLearningForSearchConfiguration;
 import solutions.bloaty.tuts.dw.deepsearch.api.resource.ResourceFactory;
 
@@ -35,6 +36,8 @@ public class DeepLearningForSearch extends Application<DeepLearningForSearchConf
 
         DummyHealthcheck dummy = new DummyHealthcheck("Dummy template: %s");
         environment.healthChecks().register("dummy", dummy);
+
+        environment.jersey().register(new InvalidDefinitionExceptionMapper());
     }
 
     @Override

@@ -6,6 +6,19 @@ application:
 logging:
   level: INFO
   loggers:
+    "request-error":
+      level: WARN
+      additive: false
+      appenders:
+        -
+          type: file
+          currentLogFilename: ./log/request-error.log
+          archivedLogFilenamePattern: ./log/request-error-%d.log.gz
+          archivedFileCount: 5
+        -
+          type: console
+          threshold: WARN
+          target: stderr
     "solutions.bloaty.misc.dwlucene.service.LuceneService":
       level: DEBUG
       additive: false
