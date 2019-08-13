@@ -1,6 +1,8 @@
 application:
   defaultName: 'Bob'
   template: 'Hello, %s!'
+  lucene:
+    indexes-root-dir: 'indexes' # default
 logging:
   level: INFO
   loggers:

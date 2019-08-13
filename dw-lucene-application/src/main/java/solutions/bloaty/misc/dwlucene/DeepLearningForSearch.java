@@ -25,7 +25,7 @@ public class DeepLearningForSearch extends Application<DeepLearningForSearchConf
         TotalDirectoryManager totalDirectoryManager = new TotalDirectoryManager(configuration);
         environment.lifecycle().manage(totalDirectoryManager);
 
-        Path indexDirPath = configuration.getApplicationConfiguration().lucene().indexDir();
+        Path indexDirPath = configuration.getApplicationConfiguration().lucene().indexesRootDir();
         ManagedIndex managedIndex = new ManagedIndex(indexDirPath, "books");
         environment.lifecycle().manage(managedIndex);
 

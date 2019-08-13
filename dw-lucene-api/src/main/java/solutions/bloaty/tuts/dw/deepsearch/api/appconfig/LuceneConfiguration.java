@@ -1,5 +1,6 @@
 package solutions.bloaty.tuts.dw.deepsearch.api.appconfig;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.immutables.value.Value;
 
@@ -10,7 +11,11 @@ import java.nio.file.Paths;
 @Value.Style(builder = "new")
 @JsonDeserialize(builder = ImmutableLuceneConfiguration.Builder.class)
 public interface LuceneConfiguration {
-    default Path indexDir() {
+
+    @JsonProperty("indexes-root-dir")
+    @Value.Default
+    default Path indexesRootDir() {
         return Paths.get("indexes");
     }
+
 }
