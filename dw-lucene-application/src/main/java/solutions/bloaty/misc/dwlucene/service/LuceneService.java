@@ -1,6 +1,7 @@
 package solutions.bloaty.misc.dwlucene.service;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.index.IndexReader;
@@ -49,7 +50,7 @@ public class LuceneService implements LuceneResource {
 
     @Override
     public Set<String> listIndexes() {
-        return managedIndexes.keySet();
+        return ImmutableSet.copyOf(managedIndexes.keySet());
     }
 
     public void index(String toIndex) {
