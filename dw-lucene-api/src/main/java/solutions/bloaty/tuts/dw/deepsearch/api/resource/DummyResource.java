@@ -2,7 +2,7 @@ package solutions.bloaty.tuts.dw.deepsearch.api.resource;
 
 import com.codahale.metrics.annotation.Timed;
 import io.dropwizard.jersey.params.NonEmptyStringParam;
-import solutions.bloaty.tuts.dw.deepsearch.api.messages.Saying;
+import solutions.bloaty.tuts.dw.deepsearch.api.message.Saying;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;

@@ -1,4 +1,4 @@
-package solutions.bloaty.tuts.dw.deepsearch.api.messages;
+package solutions.bloaty.tuts.dw.deepsearch.api.message;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;

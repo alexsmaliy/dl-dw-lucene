@@ -1,8 +1,8 @@
 package solutions.bloaty.misc.dwlucene.service;
 
 import io.dropwizard.jersey.params.NonEmptyStringParam;
-import solutions.bloaty.tuts.dw.deepsearch.api.messages.ImmutableSaying;
-import solutions.bloaty.tuts.dw.deepsearch.api.messages.Saying;
+import solutions.bloaty.tuts.dw.deepsearch.api.message.ImmutableSaying;
+import solutions.bloaty.tuts.dw.deepsearch.api.message.Saying;
 import solutions.bloaty.tuts.dw.deepsearch.api.resource.DummyResource;
 
 import java.util.concurrent.atomic.AtomicLong;
