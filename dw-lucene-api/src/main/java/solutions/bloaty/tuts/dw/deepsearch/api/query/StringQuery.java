@@ -10,7 +10,6 @@ import org.immutables.value.Value;
 @JsonSerialize(as = ImmutableStringQuery.class)
 @JsonDeserialize(as = ImmutableStringQuery.class)
 public interface StringQuery {
-    String indexName();
     String query();
 
     @Value.Check

@@ -1,6 +1,7 @@
 package solutions.bloaty.tuts.dw.deepsearch.api.resource;
 
 import com.codahale.metrics.annotation.Timed;
+import solutions.bloaty.tuts.dw.deepsearch.api.document.IndexableDocument;
 import solutions.bloaty.tuts.dw.deepsearch.api.query.StringQuery;
 import solutions.bloaty.tuts.dw.deepsearch.api.response.HitCollection;
 
@@ -24,6 +25,11 @@ public interface LuceneResource extends Resource {
     @Path("list-indexes")
     @Timed
     Set<String> listIndexes();
+
+    @POST
+    @Path("index")
+    @Timed
+    long index(IndexableDocument document);
 
     @POST
     @Path("query")
