@@ -15,7 +15,7 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import solutions.bloaty.misc.dwlucene.Constants;
+import solutions.bloaty.misc.dwlucene.ServerConstants;
 import solutions.bloaty.tuts.dw.deepsearch.api.document.IndexableField;
 import solutions.bloaty.tuts.dw.deepsearch.api.document.TitleField;
 
@@ -58,7 +58,7 @@ public class IndexInitializer {
     private static IndexWriterConfig getIndexWriterConfig() {
         CharArraySet stopwords = new CharArraySet(
             ImmutableSet.of("a", "an", "the"),
-            Constants.Defaults.IGNORE_CASE);
+            ServerConstants.Defaults.IGNORE_CASE);
         Map<String, Analyzer> fieldToAnalyzerMap = ImmutableMap.<String, Analyzer>builder()
             .put(
                 IndexableField.DEFAULT_NAME,

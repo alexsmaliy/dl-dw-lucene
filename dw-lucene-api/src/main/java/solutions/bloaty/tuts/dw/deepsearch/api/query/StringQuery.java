@@ -9,7 +9,7 @@ import org.immutables.value.Value;
 @Value.Immutable
 @JsonSerialize(as = ImmutableStringQuery.class)
 @JsonDeserialize(as = ImmutableStringQuery.class)
-public interface StringQuery {
+public interface StringQuery extends VisitableBaseQuery {
     String query();
 
     @Value.Check
@@ -17,5 +17,10 @@ public interface StringQuery {
         Preconditions.checkArgument(
             !Strings.isNullOrEmpty(query()),
             "Query string cannot be empty!");
+    }
+
+    @Override
+    default <T> T accept(QueryVisitor<T> visitor) {
+        return visitor.visit(this);
     }
 }

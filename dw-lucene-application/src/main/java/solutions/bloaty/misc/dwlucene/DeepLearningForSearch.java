@@ -27,7 +27,7 @@ public class DeepLearningForSearch extends Application<DeepLearningForSearchConf
         environment.lifecycle().manage(totalDirectoryManager);
 
         Path indexDirPath = configuration.getApplicationConfiguration().lucene().indexesRootDir();
-        ManagedIndex managedIndex = new ManagedIndex(indexDirPath, Constants.PRIMARY_INDEX_NAME);
+        ManagedIndex managedIndex = new ManagedIndex(indexDirPath, ServerConstants.PRIMARY_INDEX_NAME);
         environment.lifecycle().manage(managedIndex);
 
         Set<ManagedIndex> managedIndexes = ImmutableSet.of(managedIndex);

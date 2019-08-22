@@ -3,8 +3,8 @@ package solutions.bloaty.misc.dwlucene;
 import solutions.bloaty.tuts.dw.deepsearch.api.document.Field;
 import solutions.bloaty.tuts.dw.deepsearch.api.document.ImmutableTitleField;
 
-public final class Constants {
-    private Constants() { /* constants class */ }
+public final class ServerConstants {
+    private ServerConstants() { /* constants class */ }
 
     public static final String PRIMARY_INDEX_NAME = "primary-index";
 

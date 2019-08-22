@@ -18,11 +18,12 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import solutions.bloaty.misc.dwlucene.Constants;
+import solutions.bloaty.misc.dwlucene.ServerConstants;
 import solutions.bloaty.misc.dwlucene.index.ManagedIndex;
 import solutions.bloaty.tuts.dw.deepsearch.api.document.IndexableDocument;
 import solutions.bloaty.tuts.dw.deepsearch.api.document.TitleField;
 import solutions.bloaty.tuts.dw.deepsearch.api.query.StringQuery;
+import solutions.bloaty.tuts.dw.deepsearch.api.query.VisitableBaseQuery;
 import solutions.bloaty.tuts.dw.deepsearch.api.resource.LuceneResource;
 import solutions.bloaty.tuts.dw.deepsearch.api.response.HitCollection;
 import solutions.bloaty.tuts.dw.deepsearch.api.response.ImmutableHitCollection;
@@ -69,7 +70,7 @@ public class LuceneService implements LuceneResource {
                 Field.Store.YES);
             toIndex.add(field);
         });
-        ManagedIndex primaryIndex = managedIndexes.get(Constants.PRIMARY_INDEX_NAME);
+        ManagedIndex primaryIndex = managedIndexes.get(ServerConstants.PRIMARY_INDEX_NAME);
         if (primaryIndex == null) {
             LOGGER.error("Unable to find primary index for searching!");
             throw new ServerErrorException(
@@ -98,23 +99,26 @@ public class LuceneService implements LuceneResource {
     }
 
     @Override
-    public HitCollection query(StringQuery stringQuery) {
-        IndexSearcher tempSearcher = null;
-        try {
-            Query parsedQuery = tryParseQuery(stringQuery);
-            tempSearcher = tryAcquireSearcher();
-            TopDocs topDocs = trySearch(tempSearcher, parsedQuery);
-            IndexReader indexReader = tempSearcher.getIndexReader();
-            List<String> hits = Arrays.stream(topDocs.scoreDocs)
-                  .flatMap(result ->
-                      getField(result, indexReader, TitleField.DEFAULT_NAME).stream())
-                  .collect(ImmutableList.toImmutableList());
-            return ImmutableHitCollection.of(hits);
-        } finally {
-            if (tempSearcher != null) {
-                tryReleaseSearcher(tempSearcher);
+    public HitCollection query(VisitableBaseQuery query) {
+        return query.accept(q -> {
+            IndexSearcher tempSearcher = null;
+            try {
+                int maxResults = q.maxResults();
+                Query parsedQuery = tryParseQuery(q);
+                tempSearcher = tryAcquireSearcher();
+                TopDocs topDocs = trySearch(tempSearcher, parsedQuery, maxResults);
+                IndexReader indexReader = tempSearcher.getIndexReader();
+                List<String> hits = Arrays.stream(topDocs.scoreDocs)
+                    .flatMap(result ->
+                        getField(result, indexReader, TitleField.DEFAULT_NAME).stream())
+                    .collect(ImmutableList.toImmutableList());
+                return ImmutableHitCollection.of(hits);
+            } finally {
+                if (tempSearcher != null) {
+                    tryReleaseSearcher(tempSearcher);
+                }
             }
-        }
+        });
     }
 
     private static Optional<String> getField(ScoreDoc result,
@@ -139,7 +143,7 @@ public class LuceneService implements LuceneResource {
 
     private IndexSearcher tryAcquireSearcher() {
         try {
-            ManagedIndex index = managedIndexes.get(Constants.PRIMARY_INDEX_NAME);
+            ManagedIndex index = managedIndexes.get(ServerConstants.PRIMARY_INDEX_NAME);
             if (index == null) {
                 LOGGER.error("Unable to find primary index for searching!");
                 throw new ServerErrorException(
@@ -155,9 +159,9 @@ public class LuceneService implements LuceneResource {
         }
     }
 
-    private TopDocs trySearch(IndexSearcher indexSearcher, Query query) {
+    private TopDocs trySearch(IndexSearcher indexSearcher, Query query, int maxResults) {
         try {
-            return indexSearcher.search(query, Constants.Defaults.MAX_RESULTS_TO_RETURN);
+            return indexSearcher.search(query, maxResults);
         } catch (IOException e) {
             LOGGER.error("Failed to search!", e);
             throw new ServerErrorException(
@@ -168,7 +172,7 @@ public class LuceneService implements LuceneResource {
 
     private void tryReleaseSearcher(IndexSearcher indexSearcher) {
         try {
-            ManagedIndex index = managedIndexes.get(Constants.PRIMARY_INDEX_NAME);
+            ManagedIndex index = managedIndexes.get(ServerConstants.PRIMARY_INDEX_NAME);
             if (index == null) {
                 LOGGER.error("Obtained a searcher for primary index, "
                     + "but now unable to find the index again to release the searcher!");
