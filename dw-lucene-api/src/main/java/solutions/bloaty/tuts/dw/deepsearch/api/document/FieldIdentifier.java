@@ -2,6 +2,7 @@ package solutions.bloaty.tuts.dw.deepsearch.api.document;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import org.immutables.value.Value;
 
@@ -12,11 +13,13 @@ import java.util.List;
 @Value.Immutable
 @JsonSerialize(as = ImmutableFieldIdentifier.class)
 @JsonDeserialize(as = ImmutableFieldIdentifier.class)
-public interface FieldIdentifier {
-    List<String> components();
+public abstract class FieldIdentifier {
+    private static final Joiner DEFAULT_JOINER = Joiner.on('.').skipNulls();
+
+    abstract List<String> components();
 
     @Value.Lazy
-    default Path getAsPath() {
+    public Path getAsPath() {
         Path path = Paths.get("/");
         for (String component : components()) {
             path.resolve(component);
@@ -25,9 +28,14 @@ public interface FieldIdentifier {
     }
 
     @Value.Check
-    default void check() {
+    protected void check() {
         Preconditions.checkArgument(
             !components().isEmpty(),
             "Indexable field URI should be a nonempty list of strings!");
+    }
+
+    @Override
+    public String toString() {
+        return DEFAULT_JOINER.join(components());
     }
 }

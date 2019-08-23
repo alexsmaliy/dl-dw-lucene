@@ -6,8 +6,10 @@ import solutions.bloaty.misc.dwlucene.logging.DefaultLoggers;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
+import javax.ws.rs.ext.Provider;
 import java.util.concurrent.ThreadLocalRandom;
 
+@Provider
 public class JsonMappingExceptionMapper implements ExceptionMapper<JsonMappingException> {
     @Override
     public Response toResponse(JsonMappingException e) {

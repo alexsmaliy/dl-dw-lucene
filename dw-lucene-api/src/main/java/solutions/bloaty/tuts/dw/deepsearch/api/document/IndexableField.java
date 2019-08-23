@@ -2,6 +2,7 @@ package solutions.bloaty.tuts.dw.deepsearch.api.document;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import org.immutables.value.Value;
 
 @Value.Immutable
@@ -16,6 +17,8 @@ public interface IndexableField extends Field {
     }
 
     @Value.Parameter
+    @JsonSerialize(using = ToStringSerializer.class)
+    @JsonDeserialize(using = FieldIdentifierDeserializerFromString.class)
     FieldIdentifier fieldIdentifier();
 
     @Override
