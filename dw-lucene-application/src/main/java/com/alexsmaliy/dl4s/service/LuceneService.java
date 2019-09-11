@@ -1,16 +1,23 @@
 package com.alexsmaliy.dl4s.service;
 
 import com.alexsmaliy.dl4s.ServerConstants;
+import com.alexsmaliy.dl4s.api.document.FieldIdentifier;
+import com.alexsmaliy.dl4s.api.document.ImmutableFieldIdentifier;
+import com.alexsmaliy.dl4s.api.document.ImmutableIndexableField;
+import com.alexsmaliy.dl4s.api.document.ImmutableTitleField;
 import com.alexsmaliy.dl4s.api.document.IndexableDocument;
 import com.alexsmaliy.dl4s.api.document.TitleField;
 import com.alexsmaliy.dl4s.api.query.StringQuery;
 import com.alexsmaliy.dl4s.api.query.VisitableBaseQuery;
 import com.alexsmaliy.dl4s.api.resource.LuceneResource;
+import com.alexsmaliy.dl4s.api.response.Hit;
 import com.alexsmaliy.dl4s.api.response.HitCollection;
+import com.alexsmaliy.dl4s.api.response.ImmutableHit;
 import com.alexsmaliy.dl4s.api.response.ImmutableHitCollection;
 import com.alexsmaliy.dl4s.api.response.ImmutableIndexingResponse;
 import com.alexsmaliy.dl4s.api.response.IndexingResponse;
 import com.alexsmaliy.dl4s.index.ManagedIndex;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
@@ -71,7 +78,7 @@ public class LuceneService implements LuceneResource {
         toIndex.add(titleField);
         document.fields().forEach(indexableField -> {
             IndexableField field = new TextField(
-                indexableField.fieldIdentifier().getAsPath().toString(),
+                indexableField.fieldIdentifier().toString(),
                 indexableField.content(),
                 Field.Store.YES);
             toIndex.add(field);
@@ -115,10 +122,17 @@ public class LuceneService implements LuceneResource {
                 tempSearcher = tryAcquireSearcher();
                 TopDocs topDocs = trySearch(tempSearcher, parsedQuery, maxResults);
                 IndexReader indexReader = tempSearcher.getIndexReader();
-                List<String> hits = Arrays.stream(topDocs.scoreDocs)
-                    .flatMap(result ->
-                        getField(result, indexReader, TitleField.DEFAULT_NAME).stream())
-                    .collect(ImmutableList.toImmutableList());
+                List<Hit> hits = Arrays.stream(topDocs.scoreDocs)
+                    .map(result -> {
+                        List<com.alexsmaliy.dl4s.api.document.Field> fields =
+                            getField(result, indexReader, TitleField.DEFAULT_NAME)
+                                .stream()
+                                .collect(ImmutableList.toImmutableList());
+                        return ImmutableHit.builder()
+                            .addAllFields(fields)
+                            .score(result.score)
+                            .build();
+                    }).collect(ImmutableList.toImmutableList());
                 return ImmutableHitCollection.of(hits);
             } finally {
                 if (tempSearcher != null) {
@@ -128,11 +142,19 @@ public class LuceneService implements LuceneResource {
         });
     }
 
-    private static Optional<String> getField(ScoreDoc result,
-                                             IndexReader indexReader,
-                                             String fieldName) {
+    private static Optional<com.alexsmaliy.dl4s.api.document.Field> getField(ScoreDoc result,
+                                            IndexReader indexReader,
+                                            String fieldName) {
         try {
-            return Optional.of(indexReader.document(result.doc).get(fieldName));
+            String fieldValue = indexReader.document(result.doc).get(fieldName);
+            com.alexsmaliy.dl4s.api.document.Field field = null;
+            if (fieldName.equalsIgnoreCase(TitleField.DEFAULT_NAME)) {
+                field = ImmutableTitleField.builder().content(fieldValue).build();
+            } else if (fieldName.equalsIgnoreCase(com.alexsmaliy.dl4s.api.document.IndexableField.DEFAULT_NAME)) {
+                FieldIdentifier fieldIdentifier = ImmutableFieldIdentifier.builder().components(Splitter.on('.').splitToList(fieldName)).build();
+                field = ImmutableIndexableField.builder().fieldIdentifier(fieldIdentifier).content(fieldValue).build();
+            }
+            return Optional.ofNullable(field);
         } catch (IOException e) {
             LOGGER.error("Failed to retrieve a field from a query result. Results are incomplete!", e);
             return Optional.empty();

@@ -11,7 +11,9 @@ import java.util.List;
 @JsonSerialize(as = ImmutableIndexableDocument.class)
 @JsonDeserialize(as = ImmutableIndexableDocument.class)
 public interface IndexableDocument {
+
     TitleField title();
+
     List<IndexableField> fields();
 
     @Value.Check
@@ -20,4 +22,5 @@ public interface IndexableDocument {
             !fields().isEmpty(),
             "Can't index a document with zero fields!");
     }
+
 }

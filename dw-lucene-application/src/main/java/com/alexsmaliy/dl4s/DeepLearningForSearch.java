@@ -1,17 +1,17 @@
 package com.alexsmaliy.dl4s;
 
+import com.alexsmaliy.dl4s.api.appconfig.DeepLearningForSearchConfiguration;
+import com.alexsmaliy.dl4s.api.resource.ResourceFactory;
 import com.alexsmaliy.dl4s.error.InvalidDefinitionExceptionMapper;
+import com.alexsmaliy.dl4s.error.JsonMappingExceptionMapper;
 import com.alexsmaliy.dl4s.healthcheck.DummyHealthcheck;
+import com.alexsmaliy.dl4s.index.ManagedIndex;
 import com.alexsmaliy.dl4s.persistence.TotalDirectoryManager;
 import com.alexsmaliy.dl4s.service.ServiceFactory;
 import com.google.common.collect.ImmutableSet;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
-import com.alexsmaliy.dl4s.error.JsonMappingExceptionMapper;
-import com.alexsmaliy.dl4s.index.ManagedIndex;
-import com.alexsmaliy.dl4s.api.appconfig.DeepLearningForSearchConfiguration;
-import com.alexsmaliy.dl4s.api.resource.ResourceFactory;
 
 import java.nio.file.Path;
 import java.util.Set;

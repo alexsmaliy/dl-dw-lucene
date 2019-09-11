@@ -10,6 +10,8 @@ import java.util.List;
 @JsonSerialize(as = ImmutableHitCollection.class)
 @JsonDeserialize(as = ImmutableHitCollection.class)
 public interface HitCollection {
+
     @Value.Parameter
-    List<String> hits();
+    List<Hit> hits();
+
 }

@@ -19,4 +19,5 @@ public interface IndexingResponse {
         @JsonInclude(Include.NON_ABSENT)
         @JsonSerialize(contentUsing = NumberSerializers.LongSerializer.class)
         OptionalLong sequenceNumber();
+
 }

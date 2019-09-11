@@ -16,6 +16,7 @@ import com.alexsmaliy.dl4s.api.ApiConstants;
     @Type(value = StringQuery.class, name = "string-query"),
 })
 public interface VisitableBaseQuery {
+
     @Value.Default
     default int maxResults() {
         return ApiConstants.Defaults.MAX_RESULTS_TO_RETURN;
@@ -27,4 +28,5 @@ public interface VisitableBaseQuery {
      * runtime type of the query and invoke the matching method.
      */
     <T> T accept(QueryVisitor<T> visitor);
+
 }

@@ -7,6 +7,7 @@ import org.immutables.value.Value;
 @Value.Style(builder = "new")
 @JsonDeserialize(builder = ImmutableApplicationConfiguration.Builder.class)
 public interface ApplicationConfiguration {
+
     String template();
 
     @Value.Default
@@ -18,4 +19,5 @@ public interface ApplicationConfiguration {
     default LuceneConfiguration lucene() {
         return new ImmutableLuceneConfiguration.Builder().build();
     }
+
 }

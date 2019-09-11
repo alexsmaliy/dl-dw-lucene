@@ -6,6 +6,7 @@ import io.dropwizard.Configuration;
 import javax.validation.constraints.NotNull;
 
 public class DeepLearningForSearchConfiguration extends Configuration {
+
     @NotNull
     private ApplicationConfiguration applicationConfiguration;
 
@@ -18,4 +19,5 @@ public class DeepLearningForSearchConfiguration extends Configuration {
     public void setApplicationConfiguration(ApplicationConfiguration applicationConfiguration) {
         this.applicationConfiguration = applicationConfiguration;
     }
+
 }

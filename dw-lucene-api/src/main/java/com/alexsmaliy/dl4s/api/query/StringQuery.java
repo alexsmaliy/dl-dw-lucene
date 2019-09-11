@@ -10,6 +10,7 @@ import org.immutables.value.Value;
 @JsonSerialize(as = ImmutableStringQuery.class)
 @JsonDeserialize(as = ImmutableStringQuery.class)
 public interface StringQuery extends VisitableBaseQuery {
+
     String query();
 
     @Value.Check
@@ -23,4 +24,5 @@ public interface StringQuery extends VisitableBaseQuery {
     default <T> T accept(QueryVisitor<T> visitor) {
         return visitor.visit(this);
     }
+
 }
