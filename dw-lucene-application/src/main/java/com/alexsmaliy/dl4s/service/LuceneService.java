@@ -151,12 +151,20 @@ public class LuceneService implements LuceneResource {
             if (fieldName.equalsIgnoreCase(TitleField.DEFAULT_NAME)) {
                 field = ImmutableTitleField.builder().content(fieldValue).build();
             } else if (fieldName.equalsIgnoreCase(com.alexsmaliy.dl4s.api.document.IndexableField.DEFAULT_NAME)) {
-                FieldIdentifier fieldIdentifier = ImmutableFieldIdentifier.builder().components(Splitter.on('.').splitToList(fieldName)).build();
-                field = ImmutableIndexableField.builder().fieldIdentifier(fieldIdentifier).content(fieldValue).build();
+                FieldIdentifier fieldIdentifier =
+                    ImmutableFieldIdentifier.builder()
+                                            .components(Splitter.on('.').splitToList(fieldName))
+                                            .build();
+                field = ImmutableIndexableField.builder()
+                                               .fieldIdentifier(fieldIdentifier)
+                                               .content(fieldValue)
+                                               .build();
             }
             return Optional.ofNullable(field);
         } catch (IOException e) {
-            LOGGER.error("Failed to retrieve a field from a query result. Results are incomplete!", e);
+            LOGGER.error(
+                "Failed to retrieve a field from a query result. Results are incomplete!",
+                e);
             return Optional.empty();
         }
     }

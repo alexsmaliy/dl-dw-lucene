@@ -18,7 +18,7 @@ import org.immutables.value.Value;
     include = As.WRAPPER_OBJECT
 )
 @JsonSubTypes({
-    @Type(value = ImmutableTitleField.class, name = IndexableField.DEFAULT_NAME),
+    @Type(value = ImmutableIndexableField.class, name = IndexableField.DEFAULT_NAME),
 })
 public interface IndexableField extends Field {
 
