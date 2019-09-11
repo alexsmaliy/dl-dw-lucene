@@ -1,16 +1,19 @@
 package solutions.bloaty.tuts.dw.deepsearch.api.query;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 import org.immutables.value.Value;
 import solutions.bloaty.tuts.dw.deepsearch.api.ApiConstants;
 
 @JsonTypeInfo(
-    use = JsonTypeInfo.Id.NAME,
-    include = JsonTypeInfo.As.WRAPPER_OBJECT
+    use = Id.NAME,
+    include = As.WRAPPER_OBJECT
 )
 @JsonSubTypes({
-    @JsonSubTypes.Type(value = StringQuery.class, name = "string-query"),
+    @Type(value = StringQuery.class, name = "string-query"),
 })
 public interface VisitableBaseQuery {
     @Value.Default

@@ -2,6 +2,7 @@ package solutions.bloaty.tuts.dw.deepsearch.api.document;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import org.immutables.value.Value;
@@ -11,8 +12,8 @@ import java.nio.file.Paths;
 import java.util.List;
 
 @Value.Immutable
-@JsonSerialize(as = ImmutableFieldIdentifier.class)
-@JsonDeserialize(as = ImmutableFieldIdentifier.class)
+@JsonSerialize(using = ToStringSerializer.class)
+@JsonDeserialize(using = FieldIdentifierDeserializerFromString.class)
 public abstract class FieldIdentifier {
     private static final Joiner DEFAULT_JOINER = Joiner.on('.').skipNulls();
 
