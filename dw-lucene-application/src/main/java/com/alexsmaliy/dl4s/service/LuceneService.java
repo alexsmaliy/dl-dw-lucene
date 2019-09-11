@@ -1,6 +1,15 @@
 package com.alexsmaliy.dl4s.service;
 
 import com.alexsmaliy.dl4s.ServerConstants;
+import com.alexsmaliy.dl4s.api.document.IndexableDocument;
+import com.alexsmaliy.dl4s.api.document.TitleField;
+import com.alexsmaliy.dl4s.api.query.StringQuery;
+import com.alexsmaliy.dl4s.api.query.VisitableBaseQuery;
+import com.alexsmaliy.dl4s.api.resource.LuceneResource;
+import com.alexsmaliy.dl4s.api.response.HitCollection;
+import com.alexsmaliy.dl4s.api.response.ImmutableHitCollection;
+import com.alexsmaliy.dl4s.api.response.ImmutableIndexingResponse;
+import com.alexsmaliy.dl4s.api.response.IndexingResponse;
 import com.alexsmaliy.dl4s.index.ManagedIndex;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -20,19 +29,16 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.alexsmaliy.dl4s.api.document.IndexableDocument;
-import com.alexsmaliy.dl4s.api.document.TitleField;
-import com.alexsmaliy.dl4s.api.query.StringQuery;
-import com.alexsmaliy.dl4s.api.query.VisitableBaseQuery;
-import com.alexsmaliy.dl4s.api.resource.LuceneResource;
-import com.alexsmaliy.dl4s.api.response.HitCollection;
-import com.alexsmaliy.dl4s.api.response.ImmutableHitCollection;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 public class LuceneService implements LuceneResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(LuceneService.class);
@@ -56,13 +62,13 @@ public class LuceneService implements LuceneResource {
         return ImmutableSet.copyOf(managedIndexes.keySet());
     }
 
-    public long index(IndexableDocument document) {
+    public IndexingResponse index(IndexableDocument document) {
         Document toIndex = new Document();
-        IndexableField titlefield = new TextField(
+        IndexableField titleField = new TextField(
             document.title().name(),
             document.title().content(),
             Field.Store.YES);
-        toIndex.add(titlefield);
+        toIndex.add(titleField);
         document.fields().forEach(indexableField -> {
             IndexableField field = new TextField(
                 indexableField.fieldIdentifier().getAsPath().toString(),
@@ -89,7 +95,8 @@ public class LuceneService implements LuceneResource {
                 Response.Status.INTERNAL_SERVER_ERROR);
         }
         try {
-            return indexWriter.commit();
+            long sequenceNumber = indexWriter.commit();
+            return ImmutableIndexingResponse.builder().sequenceNumber(sequenceNumber).build();
         } catch (IOException e) {
             LOGGER.error("Failed to commit to primary index!", e);
             throw new ServerErrorException(

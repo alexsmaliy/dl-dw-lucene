@@ -3,6 +3,7 @@ package com.alexsmaliy.dl4s.api.resource;
 import com.alexsmaliy.dl4s.api.document.IndexableDocument;
 import com.alexsmaliy.dl4s.api.query.VisitableBaseQuery;
 import com.alexsmaliy.dl4s.api.response.HitCollection;
+import com.alexsmaliy.dl4s.api.response.IndexingResponse;
 import com.codahale.metrics.annotation.Timed;
 
 import javax.ws.rs.GET;
@@ -29,7 +30,7 @@ public interface LuceneResource extends Resource {
     @POST
     @Path("index")
     @Timed
-    long index(IndexableDocument document);
+    IndexingResponse index(IndexableDocument document);
 
     @POST
     @Path("query")
