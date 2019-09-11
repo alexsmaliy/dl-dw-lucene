@@ -1,6 +1,6 @@
 ext {
   projectLevelVariables = [
-    mainClass: 'solutions.bloaty.misc.dwlucene.DeepLearningForSearch',
+    mainClass: 'com.alexsmaliy.dl4s.DeepLearningForSearch',
     projectName : 'dw-lucene'
   ]
 }

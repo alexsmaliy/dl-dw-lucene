@@ -19,7 +19,7 @@ logging:
           type: console
           threshold: WARN
           target: stderr
-    "solutions.bloaty.misc.dwlucene.service.LuceneService":
+    "com.alexsmaliy.dl4s.service.LuceneService":
       level: DEBUG
       additive: false
       appenders:
