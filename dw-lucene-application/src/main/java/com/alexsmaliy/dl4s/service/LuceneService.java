@@ -33,6 +33,7 @@ import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.SearcherManager;
 import org.apache.lucene.search.TopDocs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +45,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 public class LuceneService implements LuceneResource {
@@ -125,9 +125,7 @@ public class LuceneService implements LuceneResource {
                 List<Hit> hits = Arrays.stream(topDocs.scoreDocs)
                     .map(result -> {
                         List<com.alexsmaliy.dl4s.api.document.Field> fields =
-                            getField(result, indexReader, TitleField.DEFAULT_NAME)
-                                .stream()
-                                .collect(ImmutableList.toImmutableList());
+                            getFields(result, indexReader);
                         return ImmutableHit.builder()
                             .addAllFields(fields)
                             .score(result.score)
@@ -142,30 +140,32 @@ public class LuceneService implements LuceneResource {
         });
     }
 
-    private static Optional<com.alexsmaliy.dl4s.api.document.Field> getField(ScoreDoc result,
-                                            IndexReader indexReader,
-                                            String fieldName) {
+    private static List<com.alexsmaliy.dl4s.api.document.Field> getFields(ScoreDoc result,
+                                                                          IndexReader indexReader) {
         try {
-            String fieldValue = indexReader.document(result.doc).get(fieldName);
-            com.alexsmaliy.dl4s.api.document.Field field = null;
-            if (fieldName.equalsIgnoreCase(TitleField.DEFAULT_NAME)) {
-                field = ImmutableTitleField.builder().content(fieldValue).build();
-            } else if (fieldName.equalsIgnoreCase(com.alexsmaliy.dl4s.api.document.IndexableField.DEFAULT_NAME)) {
-                FieldIdentifier fieldIdentifier =
-                    ImmutableFieldIdentifier.builder()
-                                            .components(Splitter.on('.').splitToList(fieldName))
-                                            .build();
-                field = ImmutableIndexableField.builder()
-                                               .fieldIdentifier(fieldIdentifier)
-                                               .content(fieldValue)
-                                               .build();
-            }
-            return Optional.ofNullable(field);
+            return indexReader.document(result.doc).getFields().stream().map(f -> {
+                com.alexsmaliy.dl4s.api.document.Field field = null;
+                String fieldValue = f.stringValue();
+                String fieldName = f.name();
+                if (fieldName.equalsIgnoreCase(TitleField.DEFAULT_NAME)) {
+                    field = ImmutableTitleField.builder().content(fieldValue).build();
+                } else {
+                    FieldIdentifier fieldIdentifier =
+                        ImmutableFieldIdentifier.builder()
+                            .components(Splitter.on('.').splitToList(fieldName))
+                            .build();
+                    field = ImmutableIndexableField.builder()
+                        .fieldIdentifier(fieldIdentifier)
+                        .content(fieldValue)
+                        .build();
+                }
+                return field;
+            }).collect(ImmutableList.toImmutableList());
         } catch (IOException e) {
             LOGGER.error(
                 "Failed to retrieve a field from a query result. Results are incomplete!",
                 e);
-            return Optional.empty();
+            return ImmutableList.of();
         }
     }
 
@@ -187,7 +187,9 @@ public class LuceneService implements LuceneResource {
                     "Server error while searching!",
                     Response.Status.INTERNAL_SERVER_ERROR);
             }
-            return index.getSearcherManager().acquire();
+            SearcherManager searcherManager = index.getSearcherManager();
+            searcherManager.maybeRefresh();
+            return searcherManager.acquire();
         } catch (IOException e) {
             LOGGER.error("Failed to acquire index searcher!", e);
             throw new ServerErrorException(
